@@ -8,7 +8,7 @@ const SiteNavbar = (props) => {
                 <Nav className="me-auto" onSelect={onNavSelect}>
                     <Nav.Link href="#home" eventKey={"home"}>Home</Nav.Link>
                     <Nav.Link href="#by-company" eventKey={"by-company"}>By Company</Nav.Link>
-                    {/* <Nav.Link href="#by-industry" eventKey={"by-industry"}>By Industry</Nav.Link> */}
+                    <Nav.Link href="#by-industry" eventKey={"by-industry"}>By Industry</Nav.Link>
                 </Nav>
             </Container> 
         </Navbar>

@@ -10,7 +10,7 @@ const HomePage = (props) => {
             <h1>Who Owns Who?</h1>
         </Row>
         <Row>
-            <h3>Select one of the options below to discover which who owns who in the corporate world.</h3>
+            <h3>Select one of the options below to discover who owns who in the corporate world.</h3>
         </Row>
         <Row md={3} xs={2} className="g-4">
             <Col>
@@ -22,7 +22,7 @@ const HomePage = (props) => {
                 </Card.Body>
             </Card>
             </Col>
-            {/* <Col>
+            <Col>
             <Card border="primary" style={{width: "18rem"}}>
                 <Card.Body>
                     <Card.Title>By Industry</Card.Title>
@@ -30,7 +30,7 @@ const HomePage = (props) => {
                     <Button variant="primary" onClick={() => handleNavSelect("by-industry")}>Choose Company</Button>
                 </Card.Body>
             </Card>
-            </Col> */}
+            </Col>
         </Row>
         </>
         

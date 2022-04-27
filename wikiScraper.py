@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 from rdflib import Graph
 from SPARQLWrapper import SPARQLWrapper, JSON, N3
+from datetime import datetime
 
 
 def replace_chars(text):
@@ -42,20 +43,34 @@ def get_top_level_parent(sparql, company_name):
     except Exception:
         return    
 
+def get_result(sparql, parent_company):
+    sparql.setQuery(f'''
+        SELECT ?name
+        WHERE {{?name dbo:parentCompany dbr:{parent_company}}}
+    ''')
+    sparql.setReturnFormat(JSON)
+    gdata = sparql.query().convert()
+    return gdata
+
+def benchmark(name, x, *args):
+    start = datetime.now()
+    result = x(*args)
+    print(f"{name} ran in {datetime.now() - start}s")
+    return result
 
 def build_tree(sparql, parent_company, relationship_tree):
     """
     Doc string here.
     """
-
+    # potential_parents = [parent_company]
+    # while potential_parents:
+    #     curr_parent = potential_parents.pop()
+    #     relationship_tree['name'] = curr_parent
+    #     relationship_tree['parent'] = 'null'
     try:
         print(f"Parent company in build tree: {parent_company}")
-        sparql.setQuery(f'''
-            SELECT ?name
-            WHERE {{?name dbo:parentCompany dbr:{parent_company}}}
-        ''')
-        sparql.setReturnFormat(JSON)
-        gdata = sparql.query().convert()
+        gdata = benchmark(f"get child companies {parent_company}", get_result, sparql, parent_company)
+        
         if not gdata['results']['bindings']:
             return relationship_tree
 

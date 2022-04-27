@@ -1,8 +1,8 @@
 import React from "react";
-import { Button, Form} from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
+import TreeGraph from "./Chart";
 
-
-const ByCompanyPage = ({handleCompanyChange, message}) => {
+const ByCompanyPage = ({handleCompanyChange, graphData}) => {
 
     return (
         <>
@@ -15,11 +15,7 @@ const ByCompanyPage = ({handleCompanyChange, message}) => {
             </Form.Group>
             <Button type="submit">Submit</Button>
         </Form>
-        {message != null && 
-        <p>
-            {message}
-        </p>
-        }
+        <TreeGraph graphData={graphData}/>
         </>
     )
 }
