@@ -34,17 +34,17 @@ function ByCompany() {
 }
 
 function ByIndustry() {
-  const [message, setMessage] = useState(null);
+  const [graphData, setGraphData] = useState(null);
 
   async function handleCompanyChange(e){
     console.log(`in ByIndustry: ${e.target.value}`);
     const response = await getByCompanyName(e.target.value);
-    setMessage(response);
-    console.log(message);
+    setGraphData(response);
+    console.log(graphData);
   }
 
     return (
-      <ByIndustryPage handleCompanyChange={handleCompanyChange} message={message}/>
+      <ByIndustryPage handleCompanyChange={handleCompanyChange} graphData={graphData}/>
     )
 }
 

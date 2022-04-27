@@ -1,8 +1,9 @@
 import React from "react";
 import { Form } from "react-bootstrap";
+import TreeGraph from "./Chart";
 
 
-const ByIndustryPage = ({handleCompanyChange, message}) => {
+const ByIndustryPage = ({handleCompanyChange, graphData}) => {
 
     return (
         <>
@@ -30,11 +31,7 @@ const ByIndustryPage = ({handleCompanyChange, message}) => {
                 <option value="Ford Motor Company">Ford Motor Company</option>
             </Form.Select>
         </Form> 
-        {message != null && 
-        <p>
-            {message}
-        </p>
-        }
+        <TreeGraph graphData={graphData}/>
         </>
     )
 }

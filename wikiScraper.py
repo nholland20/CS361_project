@@ -5,6 +5,7 @@ import re
 from rdflib import Graph
 from SPARQLWrapper import SPARQLWrapper, JSON, N3
 from datetime import datetime
+from pprint import pprint
 
 
 def replace_chars(text):
@@ -54,47 +55,63 @@ def get_result(sparql, parent_company):
 
 def benchmark(name, x, *args):
     start = datetime.now()
+    print(f"Starting {name} at {start}")
     result = x(*args)
     print(f"{name} ran in {datetime.now() - start}s")
     return result
 
-def build_tree(sparql, parent_company, relationship_tree):
+class Node:
+    def __init__(self, name, parent_node):
+        self.name = name
+        self.parent = parent_node
+        self.children = []
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "parent": self.parent.name if self.parent else "null",
+            "children": [c.to_dict() for c in self.children]
+        }
+
+def printTree(node, spaces=2):
+    print(" " * spaces, node.name)
+    for n in node.children:
+        printTree(n, spaces * 2)
+
+def build_tree(sparql, parent_company, node):
     """
     Doc string here.
     """
-    # potential_parents = [parent_company]
-    # while potential_parents:
-    #     curr_parent = potential_parents.pop()
-    #     relationship_tree['name'] = curr_parent
-    #     relationship_tree['parent'] = 'null'
+
+    print("intermediate")
+    printTree(node)
+    
     try:
         print(f"Parent company in build tree: {parent_company}")
         gdata = benchmark(f"get child companies {parent_company}", get_result, sparql, parent_company)
-        
-        if not gdata['results']['bindings']:
-            return relationship_tree
+    except Exception: 
+        return       
 
-        for res in gdata['results']['bindings']:
+    if not gdata['results']['bindings']:
+        return node
+
+    for res in gdata['results']['bindings']:
+        try:
             url = res['name']['value']
             name = url.rsplit('/', 1)[-1]
             UTF_name = replace_chars(name)
-            if parent_company in relationship_tree:
-                relationship_tree[parent_company].append(name)
-            else:
-                relationship_tree[parent_company] = [name]
-            build_tree(sparql, UTF_name, relationship_tree)
-        
-        return relationship_tree
+            node.children.append(Node(name, node))
+        except:
+            print("BAD NAME!!!!")
+            continue
 
-    except Exception: 
-        return    
+        build_tree(sparql, UTF_name, node)
 
 def build_relationship_tree(company_name):
     """
     param1: <string> a company name
     returns: A dictionary representing the corporate heirarchy of the provided company_name
     """
-    relationship_tree = {}
     # Using DBPedia - structured wikipedia data
     sparql = SPARQLWrapper('https://dbpedia.org/sparql')
     
@@ -102,15 +119,19 @@ def build_relationship_tree(company_name):
 
     # find top level parent
     top_parent = get_top_level_parent(sparql, company_name)
+    top_node = Node(top_parent, None)
     print(f"top parent: {top_parent}")
     if not top_parent:
-        finished_tree = build_tree(sparql, company_name, relationship_tree)
+        build_tree(sparql, company_name, top_node)
     else:
-        finished_tree = build_tree(sparql, top_parent, relationship_tree)
-    print(f"finished tree: {finished_tree}")
+        build_tree(sparql, top_parent, top_node)
+    print(f"finished tree: {printTree(top_node)}")
 
-    return finished_tree
+    converted = top_node.to_dict()
+    pprint(converted)
+
+    return converted
 
 
 if __name__ == '__main__':
-    build_relationship_tree('Alphabet Inc.')
+    build_relationship_tree('Kraft_Foods')
