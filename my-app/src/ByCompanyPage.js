@@ -1,8 +1,9 @@
 import React from "react";
 import { Button, Form } from "react-bootstrap";
 import TreeGraph from "./Chart";
+import OptionsDropdown from './OptionsDropdown';
 
-const ByCompanyPage = ({handleCompanyChange, graphData}) => {
+const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, optionList}) => {
 
     return (
         <>
@@ -16,6 +17,7 @@ const ByCompanyPage = ({handleCompanyChange, graphData}) => {
             <Button type="submit">Submit</Button>
         </Form>
         <TreeGraph graphData={graphData}/>
+        <OptionsDropdown optionsList={optionList} handleOptionSelect={handleOptionSelect}/>
         </>
     )
 }

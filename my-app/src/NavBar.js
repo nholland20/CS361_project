@@ -1,14 +1,20 @@
 import {Navbar, Container, Nav} from "react-bootstrap"
+import { NavLink } from 'react-router-dom';
 
 const SiteNavbar = (props) => {
-    const { onNavSelect } = props
     return (
         <Navbar bg="dark" variant="dark">
             <Container>
-                <Nav className="me-auto" onSelect={onNavSelect}>
-                    <Nav.Link href="#home" eventKey={"home"}>Home</Nav.Link>
-                    <Nav.Link href="#by-company" eventKey={"by-company"}>By Company</Nav.Link>
-                    <Nav.Link href="#by-industry" eventKey={"by-industry"}>By Industry</Nav.Link>
+                <Nav className="me-auto">
+                    <NavLink to={'/'} style={{color: '#ffffff', marginRight: '15px'}}>
+                        <div>Home</div>
+                    </NavLink>
+                    <NavLink to={'/by-company'} style={{color: '#ffffff', marginRight: '15px'}}>
+                        <div>By Company</div>
+                    </NavLink>
+                    <NavLink to={'/by-industry'} style={{color: '#ffffff', marginRight: '15px'}}>
+                        <div>By Industry</div>
+                    </NavLink>
                 </Nav>
             </Container> 
         </Navbar>

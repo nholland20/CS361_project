@@ -1,11 +1,13 @@
 import './App.css';
-import React, {Component, useState} from 'react';
+import React, {useState} from 'react';
 import SiteNavbar from './NavBar';
 import { Container, Row, Col } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
 import HomePage from './HomePage';
 import ByCompanyPage from './ByCompanyPage';
 import ByIndustryPage from './ByIndustry';
+import {BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 async function getByCompanyName (companyName) {
   const response = await fetch(`/getByCompanyName/${companyName}`);
@@ -15,21 +17,37 @@ async function getByCompanyName (companyName) {
 function ByCompany() {
   const [graphData, setGraphData] = useState(null);
   const [companyName, setCompanyName] = useState(null);
+  const [optionList, setOptionList] = useState(null);
 
-  async function handleCompanyChange(e){
+  async function getVisByCompanyName(e) {
     e.preventDefault();
-    console.log(`in ByCompany: ${e.target.inputCompany.value}`);
+    console.log(`in ByCompany before send: ${e.target.inputCompany.value}`);
     const companyName = e.target.inputCompany.value
     const companyNameStripped = companyName.replace(/\n/g, '')
-    setCompanyName(companyNameStripped);
-    const response = await getByCompanyName(companyNameStripped);
-    setGraphData(response);
-    setCompanyName(null);
-    console.log(graphData);
+    handleCompanyChange(companyNameStripped);
   }
 
+  async function handleCompanyChange(companyName){
+    setCompanyName(companyName);
+    const response = await getByCompanyName(companyName);
+    if ('tree' in response) {
+      setGraphData(response.tree);
+      setOptionList(null);  
+    } else if ('options' in response) {
+      setOptionList(response.options);
+      setCompanyName(null);
+    }
+    setCompanyName(null);
+  }
+
+  async function handleOptionSelect(e) {
+    console.log(`option select: ${e.target.value}`);
+    handleCompanyChange(e.target.value);
+  }
+
+
   return (
-    <ByCompanyPage companyName={companyName} handleCompanyChange={handleCompanyChange} graphData={graphData}/>
+    <ByCompanyPage companyName={companyName} handleCompanyChange={getVisByCompanyName} handleOptionSelect={handleOptionSelect} graphData={graphData} optionList={optionList}/>
   )
 }
 
@@ -39,7 +57,7 @@ function ByIndustry() {
   async function handleCompanyChange(e){
     console.log(`in ByIndustry: ${e.target.value}`);
     const response = await getByCompanyName(e.target.value);
-    setGraphData(response);
+    setGraphData(response.tree);
     console.log(graphData);
   }
 
@@ -48,45 +66,34 @@ function ByIndustry() {
     )
 }
 
-function ActivePageBody(props) {
-  const {activeNavLink, handleNavSelect} = props;
-  switch (activeNavLink) {
-    case "home":
-      return <HomePage handleNavSelect={handleNavSelect}></HomePage>;
-    case "by-company":
-      return <ByCompany handleNavSelect={handleNavSelect}></ByCompany>;
-    case "by-industry":
-      return <ByIndustry handleNavSelect={handleNavSelect}></ByIndustry>;
-    default:
-      throw new Error(`Unknown nav link ${activeNavLink}`);
-  }
-}
+function App() {
 
-
-class App extends Component {
-  handleNavSelect = (selectedKey) => {
-    this.setState({activeNavLink: selectedKey});
-  };
-
-  state = {
-    activeNavLink: "home",
-  };
-
-  render() {
-    const { activeNavLink } = this.state;
     return (
       <Container fluid>
         <Row className='navbar'>
           <Col>
-          <SiteNavbar onNavSelect={this.handleNavSelect}/>
+          <SiteNavbar/>
           </Col>
         </Row>
         <Row className="pageBody">
-          <ActivePageBody activeNavLink={activeNavLink} handleNavSelect={this.handleNavSelect}/>
+          <Outlet/>
         </Row>
       </Container>
     );
   }
+
+function RoutedApp() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<App/>}>
+          <Route index element={<HomePage/>} />
+          <Route path="by-company" element={<ByCompany/>} />
+          <Route path="by-industry" element={<ByIndustry/>} />
+        </Route>
+      </Routes>
+    </Router>
+  );
 }
 
-export default App;
+export default RoutedApp;

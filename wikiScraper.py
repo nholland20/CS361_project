@@ -1,23 +1,41 @@
-import wikipedia
 import requests
-from bs4 import BeautifulSoup
 import re
-from rdflib import Graph
-from SPARQLWrapper import SPARQLWrapper, JSON, N3
+from SPARQLWrapper import SPARQLWrapper, JSON
 from datetime import datetime
 from pprint import pprint
 
+class Node:
+    def __init__(self, name, parent_node, img_link):
+        self.name = name
+        self.parent = parent_node
+        self.children = []
+        self.image = img_link
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "parent": self.parent.name if self.parent else "null",
+            "children": [c.to_dict() for c in self.children],
+            "image": self.image if self.image else "null"
+        }
 
 def replace_chars(text):
     """
     Doc string
     """
-    return_word = text
-    chars_to_replace = {'.': r'\u002E', '(': r'\u0028', ')': r'\u0029', ' ': "_"}
-    for k, v in chars_to_replace.items():
-        return_word = return_word.replace(k, v)
-    
+    return_word = text.replace(' ', '_')
+    return_word = re.escape(return_word)
+    # print(f"return word: {return_word}")
     return return_word
+
+def get_image(company_name):
+    """
+    param1 <string>: name of company to get the image for
+    """
+    company_name = company_name.replace(' ', '_')
+    url = "http://wangch9.pythonanywhere.com/" + company_name
+    response = requests.request("GET", url)
+    return response.text
 
 def get_top_level_parent(sparql, company_name):
     """
@@ -25,33 +43,56 @@ def get_top_level_parent(sparql, company_name):
     """
     try:
         sparql.setQuery(f'''
-        SELECT ?name
-        WHERE {{dbr:{company_name} dbo:parentCompany ?name}}
+        SELECT ?type ?name
+        WHERE {{dbr:{company_name} rdf:type ?type . 
+        OPTIONAL {{dbr:{company_name} dbo:parentCompany ?name}}
+        }}
         ''')
         sparql.setReturnFormat(JSON)
         gdata = sparql.query().convert()
         if not gdata['results']['bindings']:
-            return company_name
+            return False
         
         # extract the parent company (use first result only if more than one)
         for res in gdata['results']['bindings']:
-            url = res['name']['value']
-            name = url.rsplit('/', 1)[-1]
-            parent_company = replace_chars(name)
-    
-        return get_top_level_parent(sparql, parent_company)
+            print(f"res: {res}")
+            if 'name' in res:
+                url = res['name']['value']
+                name = url.rsplit('/', 1)[-1]
+                parent_company = replace_chars(name)
+                return get_top_level_parent(sparql, parent_company)
+            else:
+                type = (res['type']['value']).rsplit('/', 1)[-1]
+                if type == 'Company':
+                    return company_name
+
+        return False
 
     except Exception:
         return    
 
-def get_result(sparql, parent_company):
-    sparql.setQuery(f'''
-        SELECT ?name
-        WHERE {{?name dbo:parentCompany dbr:{parent_company}}}
-    ''')
-    sparql.setReturnFormat(JSON)
-    gdata = sparql.query().convert()
-    return gdata
+def build_tree(results, visited_nodes, node):
+    if len(visited_nodes) == len(results):
+        return
+
+    for res in results:
+        child = res['child']['value']
+        child = child.rsplit('/', 1)[-1]
+        child = child.replace('_', ' ')
+        parent = res['parent']['value']
+        parent = parent.rsplit('/', 1)[-1]
+        parent = parent.replace('_', ' ')
+
+        if parent == node.name:
+            visited_nodes.add(child)
+            img = get_image(child)
+            new_node = Node(child, node, img)
+            node.children.append(new_node)
+            build_tree(results, visited_nodes, new_node)
+        else:
+            continue
+        # print(f"child: {child}, parent: {parent}")
+    return
 
 def benchmark(name, x, *args):
     start = datetime.now()
@@ -60,52 +101,26 @@ def benchmark(name, x, *args):
     print(f"{name} ran in {datetime.now() - start}s")
     return result
 
-class Node:
-    def __init__(self, name, parent_node):
-        self.name = name
-        self.parent = parent_node
-        self.children = []
-
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "parent": self.parent.name if self.parent else "null",
-            "children": [c.to_dict() for c in self.children]
-        }
-
 def printTree(node, spaces=2):
     print(" " * spaces, node.name)
     for n in node.children:
         printTree(n, spaces * 2)
 
-def build_tree(sparql, parent_company, node):
-    """
-    Doc string here.
-    """
-
-    print("intermediate")
-    printTree(node)
-    
-    try:
-        print(f"Parent company in build tree: {parent_company}")
-        gdata = benchmark(f"get child companies {parent_company}", get_result, sparql, parent_company)
-    except Exception: 
-        return       
+def get_all_children(sparql, company_name, top_node):
+    # Using DBPedia - structured wikipedia data
+    sparql.setReturnFormat(JSON)
+    sparql.setQuery(f'''
+        SELECT ?child ?parent
+        WHERE {{ ?parent dbo:parentCompany* dbr:{company_name} . ?child dbo:parentCompany ?parent  }}
+    ''')    
+    gdata = sparql.queryAndConvert()
+    # print(gdata)
 
     if not gdata['results']['bindings']:
-        return node
+        return
 
-    for res in gdata['results']['bindings']:
-        try:
-            url = res['name']['value']
-            name = url.rsplit('/', 1)[-1]
-            UTF_name = replace_chars(name)
-            node.children.append(Node(name, node))
-        except:
-            print("BAD NAME!!!!")
-            continue
-
-        build_tree(sparql, UTF_name, node)
+    visited = set()
+    build_tree(gdata['results']['bindings'], visited, top_node)
 
 def build_relationship_tree(company_name):
     """
@@ -115,17 +130,24 @@ def build_relationship_tree(company_name):
     # Using DBPedia - structured wikipedia data
     sparql = SPARQLWrapper('https://dbpedia.org/sparql')
     
-    company_name = replace_chars(company_name)
+    esc_company_name = replace_chars(company_name)
+    print(f"Company Name: {company_name}")
 
-    # find top level parent
-    top_parent = get_top_level_parent(sparql, company_name)
-    top_node = Node(top_parent, None)
-    print(f"top parent: {top_parent}")
+    # find top level parent. Returns None if already at top.
+    top_parent = get_top_level_parent(sparql, esc_company_name)
+    print(f"top_parent: {top_parent}")
     if not top_parent:
-        build_tree(sparql, company_name, top_node)
-    else:
-        build_tree(sparql, top_parent, top_node)
-    print(f"finished tree: {printTree(top_node)}")
+        return False
+    top_parent_node_name = top_parent.replace('_', ' ')
+    top_parent_node_name = top_parent_node_name.replace('\\', '')
+    img = get_image(top_parent_node_name)
+    top_node = Node(top_parent_node_name, None, img)
+    print(f"top parent: {top_parent}")
+
+    # If top_level_parent is the same as company_name, ensure looking up a public_company before proceeding
+    get_all_children(sparql, top_parent, top_node)
+
+    #print(f"finished tree: {printTree(top_node)}")
 
     converted = top_node.to_dict()
     pprint(converted)
@@ -134,4 +156,4 @@ def build_relationship_tree(company_name):
 
 
 if __name__ == '__main__':
-    build_relationship_tree('Kraft_Foods')
+    print(build_relationship_tree('Kraft_Foods'))

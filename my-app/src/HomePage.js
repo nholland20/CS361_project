@@ -1,9 +1,10 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {Row, Col, Card, Button} from "react-bootstrap"
+import { useNavigate } from "react-router-dom";
 
 const HomePage = (props) => {
-    const {handleNavSelect} = props;
+    const navigate = useNavigate();
     return (
         <>
         <Row>
@@ -18,7 +19,7 @@ const HomePage = (props) => {
                 <Card.Body>
                     <Card.Title>By Company</Card.Title>
                     <Card.Text>Click 'Start' to type in the company that you want to see the heirarchy for.</Card.Text>
-                    <Button variant="primary" onClick={() => handleNavSelect("by-company")}>Start</Button>
+                    <Button variant="primary" onClick={() => navigate("/by-company")}>Start</Button>
                 </Card.Body>
             </Card>
             </Col>
@@ -27,7 +28,7 @@ const HomePage = (props) => {
                 <Card.Body>
                     <Card.Title>By Industry</Card.Title>
                     <Card.Text>Click 'Choose Company' to view the heirarchy of a company from a specific industry.</Card.Text>
-                    <Button variant="primary" onClick={() => handleNavSelect("by-industry")}>Choose Company</Button>
+                    <Button variant="primary" onClick={() => navigate("/by-industry")}>Choose Company</Button>
                 </Card.Body>
             </Card>
             </Col>
