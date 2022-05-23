@@ -1,8 +1,20 @@
 import React, { useCallback, useState } from "react";
-import { Container } from "react-bootstrap";
+import { Container, Button } from "react-bootstrap";
 import Tree from 'react-d3-tree';
 import { Prompt } from 'react-router-dom'
 
+
+const renderForeignObjectNode = ({nodeDatum}) => (
+    <foreignObject width={300} height={250} x={-150}>
+        <Button className='treeNodeButtons'>
+          <div>{nodeDatum.name}</div>
+          {nodeDatum.image ?
+            <img src={nodeDatum.image} alt="Logo"/> :
+            <div></div>
+          }
+        </Button>
+    </foreignObject>
+)
 
 const TreeGraph = ({graphData}) => {
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -32,9 +44,9 @@ const TreeGraph = ({graphData}) => {
             orientation="vertical" 
             dimensions={dimensions} 
             translate={translate}
-            // renderCustomNodeElement={(rd3tProps) => 
-            //     renderNodeWithPictures({...rd3tProps})
-            // }
+            renderCustomNodeElement={(rd3tProps) => 
+                renderForeignObjectNode({...rd3tProps})
+            }
             />
         </div>
         </Container>
