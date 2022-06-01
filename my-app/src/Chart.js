@@ -1,22 +1,34 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import Tree from 'react-d3-tree';
 import { Prompt } from 'react-router-dom'
 
+async function getSummary(companyName) {
+    /**
+     * Parameters: name of company to get wikipedia summary for
+     * Returns: summary from wikipedia
+     */
+    const response = await fetch(`/summary/${companyName}`);
+    return response.json();
+}
 
-const renderForeignObjectNode = ({nodeDatum}) => (
-    <foreignObject width={300} height={250} x={-150}>
-        <Button className='treeNodeButtons'>
-          <div>{nodeDatum.name}</div>
-          {nodeDatum.image ?
-            <img src={nodeDatum.image} alt="Logo"/> :
-            <div></div>
-          }
+const renderForeignObjectNode = ({nodeDatum, handleNodeClick}) => {
+    return (
+    <foreignObject  width={150} height={100} x={-75}>
+        <Button variant="primary" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 150 100" className='treeNodeButtons' onClick={() => handleNodeClick(nodeDatum.name)}>
+            {nodeDatum.image !== "null" ?
+                    <div>{nodeDatum.name}
+                    <img width="75" height="50" x="0%" y="0%" className="logo" src={nodeDatum.image} alt="Logo"/>
+                    </div> :
+                    <div width="75" height="50" x="0%" y="0%">{nodeDatum.name}</div>
+                }               
         </Button>
     </foreignObject>
-)
+    )
+}
 
 const TreeGraph = ({graphData}) => {
+    const [companySummary, setCompanySummary] = useState('');
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const [dimensions, setDimensions] = useState();
     const containerRef = useCallback((containerElem) => {
@@ -27,6 +39,11 @@ const TreeGraph = ({graphData}) => {
         }
     }, []);
 
+    const handleNodeClick = (companyName) => {
+        (async () => {
+            setCompanySummary(await getSummary(companyName));
+        })();
+    };
 
     if (!graphData) {
         return <></>;
@@ -45,7 +62,7 @@ const TreeGraph = ({graphData}) => {
             dimensions={dimensions} 
             translate={translate}
             renderCustomNodeElement={(rd3tProps) => 
-                renderForeignObjectNode({...rd3tProps})
+                renderForeignObjectNode({...rd3tProps, handleNodeClick})
             }
             />
         </div>

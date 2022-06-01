@@ -2,7 +2,6 @@ import './App.css';
 import React, {useState} from 'react';
 import SiteNavbar from './NavBar';
 import { Container, Row, Col } from 'react-bootstrap';
-import "bootstrap/dist/css/bootstrap.min.css";
 import HomePage from './HomePage';
 import ByCompanyPage from './ByCompanyPage';
 import ByIndustryPage from './ByIndustry';
@@ -16,12 +15,12 @@ async function getByCompanyName (companyName) {
 
 function ByCompany() {
   const [graphData, setGraphData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState(null);
   const [optionList, setOptionList] = useState(null);
 
   async function getVisByCompanyName(e) {
     e.preventDefault();
-    console.log(`in ByCompany before send: ${e.target.inputCompany.value}`);
     const companyName = e.target.inputCompany.value
     const companyNameStripped = companyName.replace(/\n/g, '')
     handleCompanyChange(companyNameStripped);
@@ -29,40 +28,52 @@ function ByCompany() {
 
   async function handleCompanyChange(companyName){
     setCompanyName(companyName);
-    const response = await getByCompanyName(companyName);
-    if ('tree' in response) {
-      setGraphData(response.tree);
-      setOptionList(null);  
-    } else if ('options' in response) {
-      setOptionList(response.options);
+    try {
+      setLoading(true);
+      const response = await getByCompanyName(companyName);
+      if ('tree' in response) {
+        setGraphData(response.tree);
+        setOptionList(null);
+      } else if ('options' in response) {
+        setOptionList(response.options);
+        setCompanyName(null);
+      }
+      setLoading(false);
       setCompanyName(null);
+    } catch(e){
+      console.log(e);
     }
-    setCompanyName(null);
+    
   }
 
   async function handleOptionSelect(e) {
-    console.log(`option select: ${e.target.value}`);
     handleCompanyChange(e.target.value);
   }
 
 
   return (
-    <ByCompanyPage companyName={companyName} handleCompanyChange={getVisByCompanyName} handleOptionSelect={handleOptionSelect} graphData={graphData} optionList={optionList}/>
+    <ByCompanyPage companyName={companyName} handleCompanyChange={getVisByCompanyName} handleOptionSelect={handleOptionSelect} graphData={graphData} optionList={optionList} loadingState={loading}/>
   )
 }
 
 function ByIndustry() {
   const [graphData, setGraphData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleCompanyChange(e){
-    console.log(`in ByIndustry: ${e.target.value}`);
-    const response = await getByCompanyName(e.target.value);
-    setGraphData(response.tree);
-    console.log(graphData);
+    try {
+      setLoading(true);
+      const response = await getByCompanyName(e.target.value);
+      setGraphData(response.tree);
+      setLoading(false);
+    } catch(e){
+      console.log(e);
+    }
+    
   }
 
     return (
-      <ByIndustryPage handleCompanyChange={handleCompanyChange} graphData={graphData}/>
+      <ByIndustryPage handleCompanyChange={handleCompanyChange} graphData={graphData} loadingState={loading}/>
     )
 }
 

@@ -7,7 +7,17 @@ import wikipedia
 app = Flask(__name__, static_folder='my-app/build', static_url_path='')
 cors = CORS(app)
 
+@app.route("/summary/<string:page_name>", methods=['GET'])
+def get_wiki_data(page_name):
+    summary = None
+    try:
+        summary = wikipedia.summary(page_name, auto_suggest=False)
+    except Exception as e:
+        print("Error has occured: ", e)
+    
+    print(summary)
 
+    return {'company_summary': summary}
 
 @app.route('/api', methods=['GET'])
 @cross_origin()

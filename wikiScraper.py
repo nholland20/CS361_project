@@ -133,7 +133,7 @@ def get_all_children(sparql, company_name, top_node):
 
     if not gdata['results']['bindings']:
         return
-
+        
     visited = set()
     build_tree(gdata['results']['bindings'], visited, top_node)
 

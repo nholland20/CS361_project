@@ -1,9 +1,9 @@
 import React from "react";
-import { Form } from "react-bootstrap";
+import { Form, Spinner } from "react-bootstrap";
 import TreeGraph from "./Chart";
 
 
-const ByIndustryPage = ({handleCompanyChange, graphData}) => {
+const ByIndustryPage = ({handleCompanyChange, graphData, loadingState}) => {
 
     return (
         <>
@@ -32,6 +32,7 @@ const ByIndustryPage = ({handleCompanyChange, graphData}) => {
             </Form.Select>
         </Form> 
         <TreeGraph graphData={graphData}/>
+        {loadingState ? <Spinner animation="grow" variant="primary" /> : <div></div>}
         </>
     )
 }

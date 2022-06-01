@@ -1,9 +1,9 @@
 import React from "react";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Spinner } from "react-bootstrap";
 import TreeGraph from "./Chart";
 import OptionsDropdown from './OptionsDropdown';
 
-const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, optionList}) => {
+const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, optionList, loadingState}) => {
 
     return (
         <>
@@ -17,6 +17,7 @@ const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, opti
             <Button type="submit">Submit</Button>
         </Form>
         <TreeGraph graphData={graphData}/>
+        {loadingState ? <Spinner animation="grow" variant="primary" /> : <div></div>}
         <OptionsDropdown optionsList={optionList} handleOptionSelect={handleOptionSelect}/>
         </>
     )
