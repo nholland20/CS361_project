@@ -3,7 +3,7 @@ import { Button, Form, Spinner } from "react-bootstrap";
 import TreeGraph from "./Chart";
 import OptionsDropdown from './OptionsDropdown';
 
-const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, optionList, loadingState}) => {
+const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, optionList, loadingState: isLoading}) => {
 
     return (
         <>
@@ -14,10 +14,14 @@ const ByCompanyPage = ({handleCompanyChange, handleOptionSelect, graphData, opti
                 <Form.Label htmlFor="inputCompany">Company Name Here:</Form.Label>
                 <Form.Control as="textarea" id="inputCompany" name="inputCompany" rows={1}></Form.Control>
             </Form.Group>
-            <Button type="submit">Submit</Button>
+            <div style={{ display: 'flex' }}>
+                <Button type="submit" disabled={isLoading} style={{ marginLeft: '16px' }}>Submit</Button>
+                {isLoading ? <Spinner animation="grow" variant="primary" /> : null}
+            </div>
         </Form>
-        <TreeGraph graphData={graphData}/>
-        {loadingState ? <Spinner animation="grow" variant="primary" /> : <div></div>}
+        {
+            !isLoading ? (<TreeGraph graphData={graphData}/>) : null
+        }
         <OptionsDropdown optionsList={optionList} handleOptionSelect={handleOptionSelect}/>
         </>
     )

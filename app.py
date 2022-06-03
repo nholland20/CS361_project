@@ -14,8 +14,6 @@ def get_wiki_data(page_name):
         summary = wikipedia.summary(page_name, auto_suggest=False)
     except Exception as e:
         print("Error has occured: ", e)
-    
-    print(summary)
 
     return {'company_summary': summary}
 
@@ -36,9 +34,7 @@ def get_visualization(company_name):
     Parameter: company_name (str): The company name to build the visualization from.
     Returns: The built visualization.
     """
-    print(f"Entry point: {company_name}")
     relationship_tree = build_relationship_tree(company_name)
-    print(f"relationship tree: {relationship_tree}")
     if not relationship_tree:
         return {'options': check_for_disambiguation(company_name)}
     return {'tree': relationship_tree}

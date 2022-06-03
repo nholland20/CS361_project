@@ -28,6 +28,7 @@ function ByCompany() {
 
   async function handleCompanyChange(companyName){
     setCompanyName(companyName);
+    setGraphData(null);
     try {
       setLoading(true);
       const response = await getByCompanyName(companyName);

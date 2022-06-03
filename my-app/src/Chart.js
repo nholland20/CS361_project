@@ -14,11 +14,11 @@ async function getSummary(companyName) {
 
 const renderForeignObjectNode = ({nodeDatum, handleNodeClick}) => {
     return (
-    <foreignObject  width={150} height={100} x={-75}>
-        <Button variant="primary" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 150 100" className='treeNodeButtons' onClick={() => handleNodeClick(nodeDatum.name)}>
+    <foreignObject width={150} height={150} x={-75} y={-25} className='foreignObject'>
+        <Button variant="primary" className='treeNodeButtons' onClick={() => handleNodeClick(nodeDatum.name)}>
             {nodeDatum.image !== "null" ?
                     <div>{nodeDatum.name}
-                    <img width="75" height="50" x="0%" y="0%" className="logo" src={nodeDatum.image} alt="Logo"/>
+                    <img style={{width: '64px', padding: '8px'}} x="0%" y="0%" className="logo" src={nodeDatum.image} alt="Logo"/>
                     </div> :
                     <div width="75" height="50" x="0%" y="0%">{nodeDatum.name}</div>
                 }               
@@ -29,6 +29,13 @@ const renderForeignObjectNode = ({nodeDatum, handleNodeClick}) => {
 
 const TreeGraph = ({graphData}) => {
     const [companySummary, setCompanySummary] = useState('');
+    const [summaryCo, setSummaryCo] = useState('');
+
+    useEffect(() => {
+        setCompanySummary('');
+        setSummaryCo('');
+    }, [graphData])
+
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const [dimensions, setDimensions] = useState();
     const containerRef = useCallback((containerElem) => {
@@ -40,8 +47,14 @@ const TreeGraph = ({graphData}) => {
     }, []);
 
     const handleNodeClick = (companyName) => {
+        if (summaryCo === companyName){
+            setCompanySummary('');
+            setSummaryCo('');
+            return
+        }
+        setSummaryCo(companyName);
         (async () => {
-            setCompanySummary(await getSummary(companyName));
+            setCompanySummary((await getSummary(companyName)).company_summary);
         })();
     };
 
@@ -56,6 +69,7 @@ const TreeGraph = ({graphData}) => {
         message='This will delete your current visualization. Are you sure you want to exit?'
         />
         <div id='companyGraph' style={{height: '700px'}} ref={containerRef}>
+            <div>Click on a node to see a summary of each company.</div>
             <Tree 
             data={graphData} 
             orientation="vertical" 
@@ -66,6 +80,7 @@ const TreeGraph = ({graphData}) => {
             }
             />
         </div>
+        {companySummary && <div>{companySummary}</div>}
         </Container>
     )
 }

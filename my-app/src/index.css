@@ -26,3 +26,7 @@ code {
   margin-bottom: 40px;
   --bs-gutter-x: 0;
 }
+
+.foreignObject {
+  padding: 16px 16px 0px 16px;
+}

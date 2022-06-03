@@ -3,7 +3,7 @@ import { Form, Spinner } from "react-bootstrap";
 import TreeGraph from "./Chart";
 
 
-const ByIndustryPage = ({handleCompanyChange, graphData, loadingState}) => {
+const ByIndustryPage = ({handleCompanyChange, graphData, loadingState: isLoading}) => {
 
     return (
         <>
@@ -30,9 +30,11 @@ const ByIndustryPage = ({handleCompanyChange, graphData, loadingState}) => {
                 <option value="BMW">BMW</option>
                 <option value="Ford Motor Company">Ford Motor Company</option>
             </Form.Select>
-        </Form> 
-        <TreeGraph graphData={graphData}/>
-        {loadingState ? <Spinner animation="grow" variant="primary" /> : <div></div>}
+        </Form>
+        {isLoading ? <Spinner animation="grow" variant="primary" /> : null}
+        {
+            !isLoading ? (<TreeGraph graphData={graphData}/>) : null
+        }
         </>
     )
 }
